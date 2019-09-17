@@ -108,6 +108,10 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
+def model_complexity_curve(X, y, vary_hp):
+    pass
+
+
 def main():
     seed_val = 313
     abalone_names = [
@@ -132,7 +136,7 @@ def main():
 
     # instantiate decision tree
     max_depth = np.arange(3, 7)
-    dtclf = DecisionTreeClassifier(max_depth=max_depth[0])
+    dtclf = DecisionTreeClassifier(max_depth=max_depth[3])
 
     outputs = dtclf.fit(X_train, y_train)
 
@@ -140,9 +144,12 @@ def main():
     scores = cross_val_score(dtclf, X_train, y=y_train)
 
     # calculate and print learning curves
-    train_sizes = [0.2, 0.4, 0.6, 0.8]
+    train_sizes = np.linspace(.1, 1.0, 5)
     train_sizes_abs, train_scores, test_scores = learning_curve(dtclf, X_train, y_train, train_sizes=train_sizes)
-    mean_train_scores = train_scores.mean()
+    mean_train_scores = train_scores.mean(axis=1)
+    mean_test_scores = test_scores.mean(axis=1)
+    print(mean_train_scores)
+    print(mean_test_scores)
 
 
 if __name__ == "__main__":
