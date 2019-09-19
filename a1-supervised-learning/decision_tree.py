@@ -108,8 +108,28 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
-def model_complexity_curve(X, y, vary_hp):
-    pass
+def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals):
+    # for model depth hyperparameter
+    df = pd.DataFrame(index=hp_vals, columns=['train', 'test'])
+
+    for hp_val in hp_vals:
+        dtclf = DecisionTreeClassifier(max_depth=hp_val)
+
+        # train data
+        dtclf.fit(X_train, y_train)
+        train_score = dtclf.score(X_train, y_train)
+
+        # test data
+        dtclf.fit(X_test, y_test)
+        test_score = dtclf.score(X_test, y_test)
+
+        print(train_score, test_score)
+        df.loc[hp_val, 'train'] = train_score
+        df.loc[hp_val, 'test'] = test_score
+
+    return df
+
+
 
 
 def main():
@@ -150,6 +170,14 @@ def main():
     mean_test_scores = test_scores.mean(axis=1)
     print(mean_train_scores)
     print(mean_test_scores)
+    plot_learning_curve(dtclf, 'learning curve', X_train, y_train)
+    # plt.show()
+
+    hp_vals = np.arange(3, 7)
+
+    # calculate model complexity scores
+    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals)
+    print(mc_curve.head())
 
 
 if __name__ == "__main__":
