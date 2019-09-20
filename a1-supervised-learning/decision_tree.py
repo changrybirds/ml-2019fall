@@ -108,7 +108,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     return plt
 
 
-def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals):
+def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
     # for model depth hyperparameter
     df = pd.DataFrame(index=hp_vals, columns=['train', 'test'])
 
@@ -118,21 +118,30 @@ def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals):
         # train data
         dtclf.fit(X_train, y_train)
         train_score = dtclf.score(X_train, y_train)
+        cross_val = cross_val_score(dtclf, X_train, y_train, cv=cv)
+        # train_score = np.mean(cross_val)
+        # print(cross_val)
 
         # test data
-        dtclf.fit(X_test, y_test)
         test_score = dtclf.score(X_test, y_test)
 
         print(train_score, test_score)
         df.loc[hp_val, 'train'] = train_score
         df.loc[hp_val, 'test'] = test_score
 
-    return df
+    return pd.DataFrame(df, dtype='float')
 
 
+def model_complexity_charts(train_scores, test_scores, title, ylim=None):
+    plt.figure()
+    plt.title(title)
+    if ylim is not None:
+        plt.ylim(*ylim)
+    plt.grid()
 
 
 def main():
+    cv_val = 5
     seed_val = 313
     abalone_names = [
         'sex', 'length', 'diameter', 'height', 'whole_weight',
@@ -154,30 +163,24 @@ def main():
     # split data into training and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=seed_val)
 
+    # calculate model complexity scores for max_depth
+    hp_vals = np.arange(3, 20)
+    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=cv_val)
+    print(mc_curve.head(20))
+
     # instantiate decision tree
-    max_depth = np.arange(3, 7)
-    dtclf = DecisionTreeClassifier(max_depth=max_depth[3])
-
-    outputs = dtclf.fit(X_train, y_train)
-
-    # cross validation scores to find best coefficients
-    scores = cross_val_score(dtclf, X_train, y=y_train)
+    print(mc_curve.idxmax())
+    dtclf = DecisionTreeClassifier(max_depth=mc_curve['test'].idxmax())
 
     # calculate and print learning curves
     train_sizes = np.linspace(.1, 1.0, 5)
-    train_sizes_abs, train_scores, test_scores = learning_curve(dtclf, X_train, y_train, train_sizes=train_sizes)
+    train_sizes_abs, train_scores, test_scores = learning_curve(dtclf, X_train, y_train, train_sizes=train_sizes, cv=cv_val)
     mean_train_scores = train_scores.mean(axis=1)
     mean_test_scores = test_scores.mean(axis=1)
     print(mean_train_scores)
     print(mean_test_scores)
-    plot_learning_curve(dtclf, 'learning curve', X_train, y_train)
+    plot_learning_curve(dtclf, 'learning curve', X_train, y_train, cv=cv_val)
     # plt.show()
-
-    hp_vals = np.arange(3, 7)
-
-    # calculate model complexity scores
-    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals)
-    print(mc_curve.head())
 
 
 if __name__ == "__main__":
