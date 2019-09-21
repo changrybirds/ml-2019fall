@@ -148,10 +148,13 @@ def train_times(estimator, X, y, train_sizes, cv=None):
 
 
 def model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=None):
-    df = pd.DataFrame(index=hp_vals, columns=['train', 'cv', 'test'])
+    df = pd.DataFrame(index=hp_vals, columns=['train', 'test'])
 
     for hp_val in hp_vals:
-        kwargs = { hp: hp_val }
+        kwargs = {
+            hp: hp_val,
+            'random_state': SEED_VAL
+            }
         dtclf = DecisionTreeClassifier(**kwargs)
 
         # train data
@@ -159,14 +162,14 @@ def model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=Non
         train_score = dtclf.score(X_train, y_train)
 
         # get cv scores
-        cross_vals = np.mean(cross_val_score(dtclf, X_train, y_train, cv=cv))
-        cv_mean = np.mean(cross_vals)
+        # cross_vals = np.mean(cross_val_score(dtclf, X_train, y_train, cv=cv))
+        # cv_mean = np.mean(cross_vals)
 
         # test data
         test_score = dtclf.score(X_test, y_test)
 
         df.loc[hp_val, 'train'] = train_score
-        df.loc[hp_val, 'cv'] = cv_mean
+        # df.loc[hp_val, 'cv'] = cv_mean
         df.loc[hp_val, 'test'] = test_score
         # df.loc[hp_val, 'train_time'] = train_time
         # df.loc[hp_val, 'cv_time'] = cv_time
@@ -174,12 +177,20 @@ def model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=Non
     return pd.DataFrame(df, dtype='float')
 
 
-def model_complexity_charts(train_scores, test_scores, title, ylim=None):
+def plot_model_complexity_charts(train_scores, test_scores, title, ylim=None):
     plt.figure()
     plt.title(title)
     if ylim is not None:
         plt.ylim(*ylim)
     plt.grid()
+
+    plt.plot(train_scores, 'o-', color="r",
+             label="Training score")
+    plt.plot(test_scores, 'o-', color="g",
+             label="Test score")
+    plt.legend(loc='best')
+
+    return plt
 
 
 def main():
@@ -211,24 +222,33 @@ def main():
     hp_vals = np.arange(3, 20)
     max_depth_mc = model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=cv_val)
     max_depth_hp = max_depth_mc['test'].idxmax()
-    if verbose: print(mc_curve.head(10))
+    if verbose: print(max_depth_mc.head(10))
     if verbose: print(max_depth_mc.idxmax())
 
-    # calculate model complexity scores for min_samples_leaf
-    hp = 'min_samples_leaf'
-    hp_vals = np.linspace(0.1, 1.0, 10)
-    min_samples_leaf_mc = model_complexity_curve(X_train, y_train, X_test, y_test, hp, vp_vals, cv=cv_val)
-    min_samples_leaf_hp = min_samples_leaf_mc['test'].idxmax()
-    if verbose: print(mc_curve.head(10))
-    if verbose: print(max_depth_mc.idxmax())
+    plot_model_complexity_charts(max_depth_mc['train'], max_depth_mc['test'], 'MCC for max_depth')
+    plt.show()
+
+    plt.clf()
+    plt.close()
+
+    # calculate model complexity scores for max_features
+    hp = 'max_features'
+    hp_vals = np.arange(1, X_train.shape[1])
+    max_features_mc = model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=cv_val)
+    max_features_hp = max_features_mc['test'].idxmax()
+    if verbose: print(max_features_mc.head(10))
+    if verbose: print(max_features_mc.idxmax())
 
     # instantiate decision tree
-    dtclf = DecisionTreeClassifier(max_depth=max_depth_hp, min_samples_leaf=min_samples_leaf_hp)
+    dtclf = DecisionTreeClassifier(max_depth=max_depth_hp, max_features=max_features_hp)
 
     # calculate and print learning curves
-    train_sizes = np.linspace(.1, .9, 9)
+    train_sizes = np.linspace(0.1, 0.9, 9)
     plot_learning_curve(dtclf, 'Learning Curves', X_train, y_train, cv=cv_val, train_sizes=train_sizes)
-    # plt.show()
+    plt.show()
+
+    plt.clf()
+    plt.close()
 
 
 if __name__ == "__main__":
