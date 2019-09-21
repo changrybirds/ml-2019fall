@@ -193,7 +193,6 @@ def main():
     df = pd.read_csv('./abalone.csv', names=abalone_names)
     df = df.dropna()
 
-
     # transform output into classification problem
     df.loc[df['rings'] < 9, 'rings'] = 1
     df.loc[(df['rings'] >= 9) & (df['rings'] <= 10), 'rings'] = 2
@@ -210,14 +209,21 @@ def main():
     # calculate model complexity scores for max_depth
     hp = 'max_depth'
     hp_vals = np.arange(3, 20)
-    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=cv_val)
-    if verbose: print(mc_curve.head(20))
+    max_depth_mc = model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=cv_val)
+    max_depth_hp = max_depth_mc['test'].idxmax()
+    if verbose: print(mc_curve.head(10))
+    if verbose: print(max_depth_mc.idxmax())
 
-    #calculate model complexity scores for min_samples
+    # calculate model complexity scores for min_samples_leaf
+    hp = 'min_samples_leaf'
+    hp_vals = np.linspace(0.1, 1.0, 10)
+    min_samples_leaf_mc = model_complexity_curve(X_train, y_train, X_test, y_test, hp, vp_vals, cv=cv_val)
+    min_samples_leaf_hp = min_samples_leaf_mc['test'].idxmax()
+    if verbose: print(mc_curve.head(10))
+    if verbose: print(max_depth_mc.idxmax())
 
     # instantiate decision tree
-    if verbose: print(mc_curve.idxmax())
-    dtclf = DecisionTreeClassifier(max_depth=mc_curve['test'].idxmax())
+    dtclf = DecisionTreeClassifier(max_depth=max_depth_hp, min_samples_leaf=min_samples_leaf_hp)
 
     # calculate and print learning curves
     train_sizes = np.linspace(.1, .9, 9)
