@@ -7,6 +7,8 @@ from sklearn import metrics
 from time import time
 import matplotlib.pyplot as plt
 
+SEED_VAL = 313
+
 def encode_data(df, cols):
     """
     Parameters:
@@ -81,36 +83,68 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
         (default: np.linspace(0.1, 1.0, 5))
     """
 
-    plt.figure()
+    fig, ax1 = plt.subplots()
+    plt.grid()
     plt.title(title)
     if ylim is not None:
-        plt.ylim(*ylim)
-    plt.xlabel("Training examples")
-    plt.ylabel("Score")
+        ax1.set_ylim(*ylim)
+    ax1.set_xlabel("Training examples")
+    ax1.set_ylabel("Score")
 
-    train_t0 = time()
-    train_sizes, train_scores, test_scores = learning_curve(
+    train_sizes_abs, train_scores, test_scores = learning_curve(
         estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
-    train_time = time() - train_t0
+
+    train_times_df = train_times(estimator, X, y, train_sizes, cv=cv)
 
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
     test_scores_std = np.std(test_scores, axis=1)
-    plt.grid()
 
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+    # plot scores on left axis
+    ax1.fill_between(train_sizes, train_scores_mean - train_scores_std,
                      train_scores_mean + train_scores_std, alpha=0.1,
                      color="r")
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+    ax1.fill_between(train_sizes, test_scores_mean - test_scores_std,
                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+    ax1.plot(train_sizes, train_scores_mean, 'o-', color="r",
              label="Training score")
-    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+    ax1.plot(train_sizes, test_scores_mean, 'o-', color="g",
              label="Cross-validation score")
 
-    plt.legend(loc="best")
+    # plot times on the right axis
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("Time(s)")
+    ax2.plot(train_times_df['train_time'], 'o-', color='b', label="Training Time")
+    ax2.plot(train_times_df['cv_time'], 'o-', color='y', label="CV Time")
+
+    ax1.legend(loc="best")
+    ax2.legend(loc="best")
+
+    plt.tight_layout()
     return plt
+
+
+def train_times(estimator, X, y, train_sizes, cv=None):
+    train_times_df = pd.DataFrame(index=train_sizes, columns=['train_time', 'cv_time'])
+
+    for train_size in train_sizes:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=train_size, random_state=SEED_VAL)
+
+        # get train time
+        train_t0 = time()
+        estimator.fit(X_train, y_train)
+        train_time = time() - train_t0
+
+        # get cv time
+        cv_t0 = time()
+        cross_vals = np.mean(cross_val_score(estimator, X_train, y_train, cv=cv))
+        cv_time = time() - cv_t0
+
+        train_times_df.loc[train_size, 'train_time'] = train_time
+        train_times_df.loc[train_size, 'cv_time'] = cv_time
+
+    return train_times_df
 
 
 def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
@@ -121,15 +155,11 @@ def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
         dtclf = DecisionTreeClassifier(max_depth=hp_val)
 
         # train data
-        # train_t0 = time()
         dtclf.fit(X_train, y_train)
-        # train_time = time() - train_t0
         train_score = dtclf.score(X_train, y_train)
 
         # get cv scores
-        # cv_t0 = time()
         cross_vals = np.mean(cross_val_score(dtclf, X_train, y_train, cv=cv))
-        # cv_time = time() - cv_t0
         cv_mean = np.mean(cross_vals)
 
         # test data
@@ -153,14 +183,16 @@ def model_complexity_charts(train_scores, test_scores, title, ylim=None):
 
 
 def main():
+    verbose = True
+
     cv_val = 5
-    seed_val = 313
     abalone_names = [
         'sex', 'length', 'diameter', 'height', 'whole_weight',
         'shucked_weight', 'viscera_weight', 'shell_weight', 'rings'
         ]
     df = pd.read_csv('./abalone.csv', names=abalone_names)
     df = df.dropna()
+
 
     # transform output into classification problem
     df.loc[df['rings'] < 9, 'rings'] = 1
@@ -173,20 +205,20 @@ def main():
     X = pd.get_dummies(X)
 
     # split data into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=seed_val)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=SEED_VAL)
 
     # calculate model complexity scores for max_depth
     hp_vals = np.arange(3, 20)
     mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=cv_val)
-    print(mc_curve.head(20))
+    if verbose: print(mc_curve.head(20))
 
     # instantiate decision tree
-    print(mc_curve.idxmax())
+    if verbose: print(mc_curve.idxmax())
     dtclf = DecisionTreeClassifier(max_depth=mc_curve['test'].idxmax())
 
     # calculate and print learning curves
-    train_sizes = np.linspace(.1, 1.0, 10)
-    plot_learning_curve(dtclf, 'learning curve', X_train, y_train, cv=cv_val, train_sizes=train_sizes)
+    train_sizes = np.linspace(.1, .9, 9)
+    plot_learning_curve(dtclf, 'Learning Curves', X_train, y_train, cv=cv_val, train_sizes=train_sizes)
     # plt.show()
 
 
