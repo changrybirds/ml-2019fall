@@ -147,12 +147,12 @@ def train_times(estimator, X, y, train_sizes, cv=None):
     return train_times_df
 
 
-def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
-    # for model depth hyperparameter
+def model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=None):
     df = pd.DataFrame(index=hp_vals, columns=['train', 'cv', 'test'])
 
     for hp_val in hp_vals:
-        dtclf = DecisionTreeClassifier(max_depth=hp_val)
+        kwargs = { hp: hp_val }
+        dtclf = DecisionTreeClassifier(**kwargs)
 
         # train data
         dtclf.fit(X_train, y_train)
@@ -208,9 +208,12 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=SEED_VAL)
 
     # calculate model complexity scores for max_depth
+    hp = 'max_depth'
     hp_vals = np.arange(3, 20)
-    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=cv_val)
+    mc_curve = model_complexity_curve(X_train, y_train, X_test, y_test, hp, hp_vals, cv=cv_val)
     if verbose: print(mc_curve.head(20))
+
+    #calculate model complexity scores for min_samples
 
     # instantiate decision tree
     if verbose: print(mc_curve.idxmax())
