@@ -87,8 +87,12 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
         plt.ylim(*ylim)
     plt.xlabel("Training examples")
     plt.ylabel("Score")
+
+    train_t0 = time()
     train_sizes, train_scores, test_scores = learning_curve(
         estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+    train_time = time() - train_t0
+
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)
@@ -111,21 +115,21 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
 def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
     # for model depth hyperparameter
-    df = pd.DataFrame(index=hp_vals, columns=['train', 'cv', 'test', 'train_time', 'cv_time'])
+    df = pd.DataFrame(index=hp_vals, columns=['train', 'cv', 'test'])
 
     for hp_val in hp_vals:
         dtclf = DecisionTreeClassifier(max_depth=hp_val)
 
         # train data
-        train_t0 = time()
+        # train_t0 = time()
         dtclf.fit(X_train, y_train)
-        train_time = time() - train_t0
+        # train_time = time() - train_t0
         train_score = dtclf.score(X_train, y_train)
 
         # get cv scores
-        cv_t0 = time()
+        # cv_t0 = time()
         cross_vals = np.mean(cross_val_score(dtclf, X_train, y_train, cv=cv))
-        cv_time = time() - cv_t0
+        # cv_time = time() - cv_t0
         cv_mean = np.mean(cross_vals)
 
         # test data
@@ -134,8 +138,8 @@ def model_complexity_curve(X_train, y_train, X_test, y_test, hp_vals, cv=None):
         df.loc[hp_val, 'train'] = train_score
         df.loc[hp_val, 'cv'] = cv_mean
         df.loc[hp_val, 'test'] = test_score
-        df.loc[hp_val, 'train_time'] = train_time
-        df.loc[hp_val, 'cv_time'] = cv_time
+        # df.loc[hp_val, 'train_time'] = train_time
+        # df.loc[hp_val, 'cv_time'] = cv_time
 
     return pd.DataFrame(df, dtype='float')
 
@@ -181,7 +185,7 @@ def main():
     dtclf = DecisionTreeClassifier(max_depth=mc_curve['test'].idxmax())
 
     # calculate and print learning curves
-    train_sizes = np.linspace(.1, 1.0, 5)
+    train_sizes = np.linspace(.1, 1.0, 10)
     plot_learning_curve(dtclf, 'learning curve', X_train, y_train, cv=cv_val, train_sizes=train_sizes)
     # plt.show()
 
