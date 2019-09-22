@@ -8,6 +8,7 @@ from time import time
 
 SEED_VAL = 313
 CV_VAL = 5
+HOLDOUT_SIZE = 0.3
 
 # not needed for these datasets
 def encode_data(df, cols):
@@ -26,6 +27,7 @@ def encode_data(df, cols):
 
     return encoded
 
+
 def process_abalone(df):
     # transform output into classification problem
     df.loc[df['rings'] < 9, 'rings'] = 1
@@ -38,7 +40,19 @@ def process_abalone(df):
     # encode data
     X = pd.get_dummies(X)
 
-    return train_test_split(X, y, test_size=0.3, random_state=SEED_VAL)
+    return train_test_split(X, y, test_size=HOLDOUT_SIZE, random_state=SEED_VAL)
+
+
+def process_online_shopping(df):
+    print(df.info())
+    X = df.iloc[:, :-1]
+    y = df.iloc[:, -1]
+
+    # encode data
+    X = pd.get_dummies(X)
+
+    return train_test_split(X, y, test_size=HOLDOUT_SIZE, random_state=SEED_VAL)
+
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
@@ -178,5 +192,3 @@ def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim
     plt.legend(loc='best')
 
     return plt
-
-
