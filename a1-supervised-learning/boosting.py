@@ -83,7 +83,7 @@ def run_experiment(dt_estimator, dataset_name, X_train, X_test, y_train, y_test,
     plt.clf()
     plt.close()
 
-    # instantiate neural network
+    # instantiate adaboost classifier
     adaclf = AdaBoostClassifier(
         dt_estimator, n_estimators=n_estimators_hp, learning_rate=learning_rate_hp,
         random_state=data_proc.SEED_VAL)
