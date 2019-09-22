@@ -137,6 +137,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
     train_times_df = train_times(estimator, X, y, train_sizes, cv=CV_VAL)
 
+    # collapse cv folds into a single value
     train_scores_mean = np.mean(train_scores, axis=1)
     train_scores_std = np.std(train_scores, axis=1)
     test_scores_mean = np.mean(test_scores, axis=1)

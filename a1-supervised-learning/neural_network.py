@@ -5,14 +5,23 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 
 from time import time
+import sys
 
 import dataset_processing as data_proc
 
 
 def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
-    df = pd.DataFrame(index=hp_vals, columns=['train', 'cv'])
+    # note: this assumes we use 1 hidden layer
+    hidden_units = []
+    for val in hp_vals:
+        if type(val) is tuple:
+            hidden_units.append(val[0])
+        else:
+            hidden_units.append(val)
 
-    for hp_val in hp_vals:
+    df = pd.DataFrame(index=hidden_units, columns=['train', 'cv'])
+
+    for hp_val, hu_num in zip(hp_vals, hidden_units):
         kwargs = {
             hp: hp_val,
             'random_state': data_proc.SEED_VAL}
@@ -27,8 +36,8 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
         cross_vals = cross_val_score(mlpclf, X_train, y_train, cv=cv)
         cv_mean = np.mean(cross_vals)
 
-        df.loc[hp_val, 'train'] = train_score
-        df.loc[hp_val, 'cv'] = cv_mean
+        df.loc[hu_num, 'train'] = train_score
+        df.loc[hu_num, 'cv'] = cv_mean
 
     return pd.DataFrame(df, dtype='float')
 
@@ -38,20 +47,20 @@ def plot_iterative_lc(estimator, title, X, y, max_iter_range, ylim=None, cv=None
     df = pd.DataFrame(index=max_iter_range, columns=['train', 'cv', 'train_time', 'cv_time'])
     for i in max_iter_range:
         kwargs = {
-            max_iter: i,
+            'max_iter': i,
             'random_state': data_proc.SEED_VAL}
 
         mlpclf = MLPClassifier(**kwargs)
 
         # train data
         train_t0 = time()
-        mlpclf.fit(X_train, y_train)
+        mlpclf.fit(X, y)
         train_time = time() - train_t0
-        train_score = mlpclf.score(X_train, y_train)
+        train_score = mlpclf.score(X, y)
 
         # get cv scores
         cv_t0 = time()
-        cross_vals = cross_val_score(mlpclf, X_train, y_train, cv=cv)
+        cross_vals = cross_val_score(mlpclf, X, y, cv=cv)
         cv_time = time() - cv_t0
         cv_mean = np.mean(cross_vals)
 
@@ -68,20 +77,22 @@ def plot_iterative_lc(estimator, title, X, y, max_iter_range, ylim=None, cv=None
     ax1.set_xlabel("Training examples")
     ax1.set_ylabel("Score")
 
-    train_scores_mean = np.mean(df['train'], axis=1)
-    train_scores_std = np.std(df['train'], axis=1)
-    cv_scores_mean = np.mean(df['cv'], axis=1)
-    cv_scores_std = np.std(df['cv'], axis=1)
+    # debugging point
+    print(df.head(20))
+
+    train_scores = df['train']
+    train_scores_std = np.std(df['train'])
+    cv_scores = df['cv']
+    cv_scores_std = np.std(df['cv'])
 
     # plot scores on left axis
-    ax1.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1,
-                     color="r")
-    ax1.fill_between(train_sizes, cv_scores_mean - cv_scores_std,
-                     cv_scores_mean + cv_scores_std, alpha=0.1, color="g")
-    ax1.plot(train_sizes, train_scores_mean, 'o-', color="r",
+    # ax1.fill_between(max_iter_range, train_scores - train_scores_std,
+    #                  train_scores + train_scores_std, alpha=0.1, color="r")
+    # ax1.fill_between(max_iter_range, cv_scores - cv_scores_std,
+    #                  cv_scores + cv_scores_std, alpha=0.1, color="g")
+    ax1.plot(max_iter_range, train_scores, 'o-', color="r",
              label="Training score")
-    ax1.plot(train_sizes, cv_scores_mean, 'o-', color="g",
+    ax1.plot(max_iter_range, cv_scores, 'o-', color="g",
              label="CV score")
 
     # plot times on the right axis
@@ -103,10 +114,22 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     hp = 'hidden_layer_sizes'
 
     # using 1 hidden layer - problems shouldn't be so complex as to require more
-    hp_vals = (np.arange(1, num_features),)  # this should vary for each hyperparameter
+    features = range(1, num_features)
+    hp_vals = []
+    for feature in features:
+        hp_vals.append((feature,))
+
+    if verbose:
+        print(hp_vals)
     hidden_layer_sizes_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     hidden_layer_sizes_hp = hidden_layer_sizes_mc['cv'].idxmax()
+
+    # check if index is a sequential type and convert to string
+    if type(hidden_layer_sizes_mc.index) is tuple:
+        hidden_layer_sizes_mc.index = hidden_layer_sizes_mc.index.map({}[0])
+    if verbose:
+        print(type(hidden_layer_sizes_mc.index[0]))
 
     if verbose:
         print(hidden_layer_sizes_mc.head(10))
@@ -126,7 +149,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
 
     # calculate model complexity scores for learning_rate_init
     hp = 'learning_rate_init'
-    hp_vals = np.logspace(-5, 0, base=10.0)    # this should vary for each hyperparameter
+    hp_vals = np.logspace(-5, 0, base=10.0, num=6)  # this should vary for each hyperparameter
     learning_rate_init_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     learning_rate_init_hp = learning_rate_init_mc['cv'].idxmax()
@@ -147,14 +170,15 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     plt.clf()
     plt.close()
 
-    # instantiate decision tree
+    # instantiate neural network
     mlpclf = MLPClassifier(
         hidden_layer_sizes=hidden_layer_sizes_hp, learning_rate_init=learning_rate_init_hp,
         random_state=data_proc.SEED_VAL)
 
     # calculate and print learning curves, use max_iter as x-axis
+    ### determine whether I should tune this as a param (probably)
     max_iter_range = np.arange(50, 250, 10)
-    data_proc.plot_iterative_lc(
+    plot_iterative_lc(
         mlpclf, dataset_name + ': learning curves',
         X_train, y_train, max_iter_range=max_iter_range, cv=data_proc.CV_VAL)
 
@@ -165,6 +189,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     plt.clf()
     plt.close()
 
+    mlpclf.fit(X_train, y_train)
     test_scores = data_proc.model_test_score(mlpclf, X_test, y_test)
     print("MLPClassifier holdout set score for " + dataset_name + ": ", test_scores)
 
@@ -186,5 +211,5 @@ def online_shopping(verbose=False, show_plots=False):
 
 
 if __name__ == "__main__":
-    abalone(verbose=False, show_plots=False)
-    online_shopping(verbose=False, show_plots=False)
+    abalone(verbose=True, show_plots=False)
+    online_shopping(verbose=True, show_plots=False)
