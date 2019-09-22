@@ -248,5 +248,8 @@ def plot_iterative_lc(df, title, max_iter_range, ylim=None):
     return plt
 
 
+def model_train_score(estimator, X_train, y_train):
+    return estimator.score(X_train, y_train)
+
 def model_test_score(estimator, X_test, y_test):
     return estimator.score(X_test, y_test)

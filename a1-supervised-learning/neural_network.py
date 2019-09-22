@@ -9,7 +9,10 @@ import sys
 
 import dataset_processing as data_proc
 
+from sklearn.utils.testing import ignore_warnings
+from sklearn.exceptions import ConvergenceWarning
 
+@ignore_warnings(category=ConvergenceWarning)
 def model_complexity_curve(X_train, y_train, max_iter, hp, hp_vals, cv=None):
     # note: this assumes we use 1 hidden layer
     hidden_units = []
@@ -43,6 +46,7 @@ def model_complexity_curve(X_train, y_train, max_iter, hp, hp_vals, cv=None):
     return pd.DataFrame(df, dtype='float')
 
 
+@ignore_warnings(category=ConvergenceWarning)
 def nn_iterative_lc(X, y, max_iter_range, cv=None):
     df = pd.DataFrame(index=max_iter_range, columns=['train', 'cv', 'train_time', 'cv_time'])
     for i in max_iter_range:
@@ -72,6 +76,7 @@ def nn_iterative_lc(X, y, max_iter_range, cv=None):
     return df.astype('float64')
 
 
+@ignore_warnings(category=ConvergenceWarning)
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate and print learning curves, use max_iter as x-axis
     max_iter_range = np.arange(100, 500, 50)
@@ -155,8 +160,11 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
         max_iter=max_iter_hp, random_state=data_proc.SEED_VAL)
 
     mlpclf.fit(X_train, y_train)
-    test_scores = data_proc.model_test_score(mlpclf, X_test, y_test)
-    print("MLPClassifier holdout set score for " + dataset_name + ": ", test_scores)
+
+    train_score = data_proc.model_train_score(mlpclf, X_train, y_train)
+    test_score = data_proc.model_test_score(mlpclf, X_test, y_test)
+    print("MLPClassifier training set score for " + dataset_name + ": ", train_score)
+    print("MLPClassifier holdout set score for " + dataset_name + ": ", test_score)
 
 
 def abalone(verbose=False, show_plots=False):
