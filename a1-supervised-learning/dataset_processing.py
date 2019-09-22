@@ -55,8 +55,13 @@ def process_online_shopping():
     df = pd.read_csv('./online_shoppers_intention.csv')
     df = df.dropna()
 
-    X = df.iloc[:, :-1]
-    y = df.iloc[:, -1]
+    X = pd.concat((df.iloc[:, :-6], df.iloc[:, -5:]), axis=1)
+    y = df.iloc[:, -6]
+
+    # combine low instance browsers into one class
+    mask = y.isin([1, 2])
+    y = y.where(mask, other=3)
+    y = y.astype(str)
 
     # encode data
     X = pd.get_dummies(X)
