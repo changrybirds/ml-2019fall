@@ -44,7 +44,6 @@ def process_abalone(df):
 
 
 def process_online_shopping(df):
-    print(df.info())
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
@@ -167,7 +166,7 @@ def train_times(estimator, X, y, train_sizes, cv=None):
 
         # get cv time
         cv_t0 = time()
-        cross_vals = np.mean(cross_val_score(estimator, X_train, y_train, cv=CV_VAL))
+        cross_vals = cross_val_score(estimator, X_train, y_train, cv=CV_VAL)
         cv_time = time() - cv_t0
 
         train_times_df.loc[train_size, 'train_time'] = train_time
@@ -188,7 +187,11 @@ def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim
     plt.plot(train_scores, 'o-', color="r",
              label="Training score")
     plt.plot(test_scores, 'o-', color="g",
-             label="Test score")
+             label="CV score")
     plt.legend(loc='best')
 
     return plt
+
+
+def model_test_score(estimator, X_test, y_test):
+    return estimator.score(X_test, y_test)
