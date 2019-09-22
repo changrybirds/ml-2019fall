@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 
 import dataset_processing as data_proc
 
+
 def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
     df = pd.DataFrame(index=hp_vals, columns=['train', 'cv'])
 
     for hp_val in hp_vals:
         kwargs = {
             hp: hp_val,
-            'random_state': data_proc.SEED_VAL
-            }
+            'random_state': data_proc.SEED_VAL}
+
         dtclf = DecisionTreeClassifier(**kwargs)
 
         # train data
@@ -36,13 +37,20 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     # calculate model complexity scores for max_depth
     hp = 'max_depth'
     hp_vals = np.arange(3, 20)
-    max_depth_mc = model_complexity_curve(X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
+    max_depth_mc = model_complexity_curve(
+        X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_depth_hp = max_depth_mc['cv'].idxmax()
-    if verbose: print(max_depth_mc.head(10))
-    if verbose: print(max_depth_mc.idxmax())
+    if verbose:
+        print(max_depth_mc.head(10))
+    if verbose:
+        print(max_depth_mc.idxmax())
 
-    data_proc.plot_model_complexity_charts(max_depth_mc['train'], max_depth_mc['cv'], dataset_name + ': MCC for ' + hp, hp)
-    if show_plots: plt.show()
+    data_proc.plot_model_complexity_charts(
+        max_depth_mc['train'], max_depth_mc['cv'],
+        dataset_name + ': MCC for ' + hp, hp)
+
+    if show_plots:
+        plt.show()
 
     plt.savefig('graphs/dt_mcc_' + hp + '_' + dataset_name + '.png')
     plt.clf()
@@ -51,54 +59,61 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     # calculate model complexity scores for max_features
     hp = 'max_features'
     hp_vals = np.arange(1, X_train.shape[1])
-    max_features_mc = model_complexity_curve(X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
+    max_features_mc = model_complexity_curve(
+        X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_features_hp = max_features_mc['cv'].idxmax()
-    if verbose: print(max_features_mc.head(10))
-    if verbose: print(max_features_mc.idxmax())
+    if verbose:
+        print(max_features_mc.head(10))
+    if verbose:
+        print(max_features_mc.idxmax())
 
-    data_proc.plot_model_complexity_charts(max_features_mc['train'], max_features_mc['cv'], dataset_name + ': MCC for ' + hp, hp)
-    if show_plots: plt.show()
+    data_proc.plot_model_complexity_charts(
+        max_features_mc['train'], max_features_mc['cv'],
+        dataset_name + ': MCC for ' + hp, hp)
+
+    if show_plots:
+        plt.show()
 
     plt.savefig('graphs/dt_mcc_' + hp + '_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
     # instantiate decision tree
-    dtclf = DecisionTreeClassifier(max_depth=max_depth_hp, max_features=max_features_hp, random_state=data_proc.SEED_VAL)
+    dtclf = DecisionTreeClassifier(
+        max_depth=max_depth_hp, max_features=max_features_hp,
+        random_state=data_proc.SEED_VAL)
 
     # calculate and print learning curves
     train_sizes = np.linspace(0.1, 0.9, 9)
-    data_proc.plot_learning_curve(dtclf, dataset_name + ': learning curves', X_train, y_train, cv=data_proc.CV_VAL, train_sizes=train_sizes)
-    if show_plots: plt.show()
+    data_proc.plot_learning_curve(
+        dtclf, dataset_name + ': learning curves',
+        X_train, y_train, cv=data_proc.CV_VAL, train_sizes=train_sizes)
+
+    if show_plots:
+        plt.show()
 
     plt.savefig('graphs/dt_lc_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
     test_scores = data_proc.model_test_score(dtclf, X_test, y_test)
-    print("Model scores on validation set for " + dataset_name + ": ", test_scores)
+    print("Model scores on test set for " + dataset_name + ": ", test_scores)
 
 
 def abalone(verbose=False, show_plots=False):
-    abalone_names = [
-        'sex', 'length', 'diameter', 'height', 'whole_weight',
-        'shucked_weight', 'viscera_weight', 'shell_weight', 'rings'
-        ]
-    df = pd.read_csv('./abalone.csv', header=None, names=abalone_names)
-    df = df.dropna()
+    X_train, X_test, y_train, y_test = data_proc.process_abalone()
 
-    X_train, X_test, y_train, y_test = data_proc.process_abalone(df)
-
-    run_experiment('abalone', X_train, X_test, y_train, y_test, verbose=verbose, show_plots=show_plots)
+    run_experiment(
+        'abalone', X_train, X_test, y_train, y_test,
+        verbose=verbose, show_plots=show_plots)
 
 
 def online_shopping(verbose=False, show_plots=False):
-    df = pd.read_csv('./online_shoppers_intention.csv')
-    df = df.dropna()
+    X_train, X_test, y_train, y_test = data_proc.process_online_shopping()
 
-    X_train, X_test, y_train, y_test = data_proc.process_online_shopping(df)
-
-    run_experiment('online_shopping', X_train, X_test, y_train, y_test, verbose=verbose, show_plots=show_plots)
+    run_experiment(
+        'online_shopping', X_train, X_test, y_train, y_test,
+        verbose=verbose, show_plots=show_plots)
 
 
 if __name__ == "__main__":

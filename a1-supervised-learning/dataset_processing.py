@@ -10,6 +10,7 @@ SEED_VAL = 313
 CV_VAL = 5
 HOLDOUT_SIZE = 0.3
 
+
 # not needed for these datasets
 def encode_data(df, cols):
     """
@@ -28,7 +29,14 @@ def encode_data(df, cols):
     return encoded
 
 
-def process_abalone(df):
+def process_abalone():
+    abalone_names = [
+        'sex', 'length', 'diameter', 'height', 'whole_weight',
+        'shucked_weight', 'viscera_weight', 'shell_weight', 'rings'
+        ]
+    df = pd.read_csv('./abalone.csv', header=None, names=abalone_names)
+    df = df.dropna()
+
     # transform output into classification problem
     df.loc[df['rings'] < 9, 'rings'] = 1
     df.loc[(df['rings'] >= 9) & (df['rings'] <= 10), 'rings'] = 2
@@ -43,7 +51,10 @@ def process_abalone(df):
     return train_test_split(X, y, test_size=HOLDOUT_SIZE, random_state=SEED_VAL)
 
 
-def process_online_shopping(df):
+def process_online_shopping():
+    df = pd.read_csv('./online_shoppers_intention.csv')
+    df = df.dropna()
+
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
@@ -121,7 +132,8 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     ax1.set_ylabel("Score")
 
     train_sizes_abs, train_scores, test_scores = learning_curve(
-        estimator, X, y, cv=CV_VAL, n_jobs=n_jobs, train_sizes=train_sizes, shuffle=True, random_state=SEED_VAL)
+        estimator, X, y, cv=CV_VAL, n_jobs=n_jobs,
+        train_sizes=train_sizes, shuffle=True, random_state=SEED_VAL)
 
     train_times_df = train_times(estimator, X, y, train_sizes, cv=CV_VAL)
 
@@ -157,7 +169,8 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 def train_times(estimator, X, y, train_sizes, cv=None):
     train_times_df = pd.DataFrame(index=train_sizes, columns=['train_time', 'cv_time'])
     for train_size in train_sizes:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=train_size, random_state=SEED_VAL)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, train_size=train_size, random_state=SEED_VAL)
 
         # get train time
         train_t0 = time()
@@ -184,10 +197,8 @@ def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim
         plt.ylim(*ylim)
     plt.grid()
 
-    plt.plot(train_scores, 'o-', color="r",
-             label="Training score")
-    plt.plot(test_scores, 'o-', color="g",
-             label="CV score")
+    plt.plot(train_scores, 'o-', color="r", label="Training score")
+    plt.plot(test_scores, 'o-', color="g", label="CV score")
     plt.legend(loc='best')
 
     return plt
