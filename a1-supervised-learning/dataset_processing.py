@@ -189,13 +189,16 @@ def train_times(estimator, X, y, train_sizes, cv=None):
     return train_times_df
 
 
-def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim=None):
+def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim=None, xscale_type=None):
     plt.figure()
     plt.title(title)
     plt.xlabel(hp_name)
     plt.ylabel("Score")
+
     if ylim is not None:
         plt.ylim(*ylim)
+    if xscale_type is not None:
+        plt.xscale(xscale_type)
     plt.grid()
 
     plt.plot(train_scores, 'o-', color="r", label="Training score")
