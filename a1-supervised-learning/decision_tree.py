@@ -27,8 +27,6 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
 
         df.loc[hp_val, 'train'] = train_score
         df.loc[hp_val, 'cv'] = cv_mean
-        # df.loc[hp_val, 'train_time'] = train_time
-        # df.loc[hp_val, 'cv_time'] = cv_time
 
     return pd.DataFrame(df, dtype='float')
 
