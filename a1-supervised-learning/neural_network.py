@@ -5,7 +5,6 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 
 from time import time
-import sys
 
 import dataset_processing as data_proc
 
