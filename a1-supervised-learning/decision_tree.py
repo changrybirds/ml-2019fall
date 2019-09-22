@@ -99,7 +99,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     plt.close()
 
     test_scores = data_proc.model_test_score(dtclf, X_test, y_test)
-    print("Model scores on test set for " + dataset_name + ": ", test_scores)
+    print("DTClassifier holdout set score for " + dataset_name + ": ", test_scores)
 
 
 def abalone(verbose=False, show_plots=False):
