@@ -13,7 +13,7 @@ def model_complexity_curve(estimator, X_train, y_train, hp, hp_vals, cv=None):
 
     for hp_val in hp_vals:
         kwargs = {
-            'estimator': estimator
+            'estimator': estimator,
             hp: hp_val,
             'random_state': data_proc.SEED_VAL}
 
