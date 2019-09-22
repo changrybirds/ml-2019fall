@@ -34,7 +34,7 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate model complexity scores for max_depth
     hp = 'max_depth'
-    hp_vals = np.arange(3, 20)
+    hp_vals = np.arange(3, 20)  # this should vary for each hyperparameter
     max_depth_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_depth_hp = max_depth_mc['cv'].idxmax()
@@ -57,7 +57,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
 
     # calculate model complexity scores for max_features
     hp = 'max_features'
-    hp_vals = np.arange(1, X_train.shape[1])
+    hp_vals = np.arange(1, X_train.shape[1])    # this should vary for each hyperparameter
     max_features_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_features_hp = max_features_mc['cv'].idxmax()
