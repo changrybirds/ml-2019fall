@@ -42,8 +42,7 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
     return pd.DataFrame(df, dtype='float')
 
 
-def plot_iterative_lc(estimator, title, X, y, max_iter_range, ylim=None, cv=None,
-                      n_jobs=None):
+def nn_iterative_lc(X, y, max_iter_range, cv=None):
     df = pd.DataFrame(index=max_iter_range, columns=['train', 'cv', 'train_time', 'cv_time'])
     for i in max_iter_range:
         kwargs = {
@@ -69,46 +68,31 @@ def plot_iterative_lc(estimator, title, X, y, max_iter_range, ylim=None, cv=None
         df.loc[i, 'train_time'] = train_time
         df.loc[i, 'cv_time'] = cv_time
 
-    fig, ax1 = plt.subplots()
-    plt.grid()
-    plt.title(title)
-    if ylim is not None:
-        ax1.set_ylim(*ylim)
-    ax1.set_xlabel("Training examples")
-    ax1.set_ylabel("Score")
-
-    # debugging point
-    print(df.head(20))
-
-    train_scores = df['train']
-    train_scores_std = np.std(df['train'])
-    cv_scores = df['cv']
-    cv_scores_std = np.std(df['cv'])
-
-    # plot scores on left axis
-    # ax1.fill_between(max_iter_range, train_scores - train_scores_std,
-    #                  train_scores + train_scores_std, alpha=0.1, color="r")
-    # ax1.fill_between(max_iter_range, cv_scores - cv_scores_std,
-    #                  cv_scores + cv_scores_std, alpha=0.1, color="g")
-    ax1.plot(max_iter_range, train_scores, 'o-', color="r",
-             label="Training score")
-    ax1.plot(max_iter_range, cv_scores, 'o-', color="g",
-             label="CV score")
-
-    # plot times on the right axis
-    ax2 = ax1.twinx()
-    ax2.set_ylabel("Time(s)")
-    ax2.plot(df['train_time'], 'o-', color='b', label="Training Time")
-    ax2.plot(df['cv_time'], 'o-', color='y', label="CV Time")
-
-    ax1.legend(loc="best")
-    ax2.legend(loc="best")
-
-    plt.tight_layout()
-    return plt
+    return df
 
 
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
+    # calculate and print learning curves, use max_iter as x-axis
+    max_iter_range = np.arange(50, 400, 50)
+
+    lc_df = nn_iterative_lc(X_train, y_train, max_iter_range, cv=data_proc.CV_VAL)
+    max_iter_hp = lc_df['cv'].idxmax()
+
+    if verbose:
+        print(lc_df.head(10))
+    if verbose:
+        print(lc_df.idxmax())
+
+    data_proc.plot_iterative_lc(
+        lc_df, dataset_name + ': learning curves (iterations)', max_iter_range=max_iter_range)
+
+    if show_plots:
+        plt.show()
+
+    plt.savefig('graphs/nn_lc_' + dataset_name + '.png')
+    plt.clf()
+    plt.close()
+
     # calculate model complexity scores for hidden_layer_sizes
     num_features = X_train.shape[1]
     hp = 'hidden_layer_sizes'
@@ -124,12 +108,6 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     hidden_layer_sizes_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     hidden_layer_sizes_hp = hidden_layer_sizes_mc['cv'].idxmax()
-
-    # check if index is a sequential type and convert to string
-    if type(hidden_layer_sizes_mc.index) is tuple:
-        hidden_layer_sizes_mc.index = hidden_layer_sizes_mc.index.map({}[0])
-    if verbose:
-        print(type(hidden_layer_sizes_mc.index[0]))
 
     if verbose:
         print(hidden_layer_sizes_mc.head(10))
@@ -173,21 +151,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     # instantiate neural network
     mlpclf = MLPClassifier(
         hidden_layer_sizes=hidden_layer_sizes_hp, learning_rate_init=learning_rate_init_hp,
-        random_state=data_proc.SEED_VAL)
-
-    # calculate and print learning curves, use max_iter as x-axis
-    ### determine whether I should tune this as a param (probably)
-    max_iter_range = np.arange(50, 250, 10)
-    plot_iterative_lc(
-        mlpclf, dataset_name + ': learning curves',
-        X_train, y_train, max_iter_range=max_iter_range, cv=data_proc.CV_VAL)
-
-    if show_plots:
-        plt.show()
-
-    plt.savefig('graphs/nn_lc_' + dataset_name + '.png')
-    plt.clf()
-    plt.close()
+        max_iter=max_iter_hp, random_state=data_proc.SEED_VAL)
 
     mlpclf.fit(X_train, y_train)
     test_scores = data_proc.model_test_score(mlpclf, X_test, y_test)

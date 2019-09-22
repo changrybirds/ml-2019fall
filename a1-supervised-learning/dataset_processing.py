@@ -205,5 +205,45 @@ def plot_model_complexity_charts(train_scores, test_scores, title, hp_name, ylim
     return plt
 
 
+def plot_iterative_lc(df, title, max_iter_range, ylim=None):
+    fig, ax1 = plt.subplots()
+    plt.grid()
+    plt.title(title)
+    if ylim is not None:
+        ax1.set_ylim(*ylim)
+    ax1.set_xlabel("max_iterations")
+    ax1.set_ylabel("Score")
+
+    # debugging point
+    print(df.head(20))
+
+    train_scores = df['train']
+    train_scores_std = np.std(df['train'])
+    cv_scores = df['cv']
+    cv_scores_std = np.std(df['cv'])
+
+    # plot scores on left axis
+    # ax1.fill_between(max_iter_range, train_scores - train_scores_std,
+    #                  train_scores + train_scores_std, alpha=0.1, color="r")
+    # ax1.fill_between(max_iter_range, cv_scores - cv_scores_std,
+    #                  cv_scores + cv_scores_std, alpha=0.1, color="g")
+    ax1.plot(max_iter_range, train_scores, 'o-', color="r",
+             label="Training score")
+    ax1.plot(max_iter_range, cv_scores, 'o-', color="g",
+             label="CV score")
+
+    # plot times on the right axis
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("Time(s)")
+    ax2.plot(df['train_time'], 'o-', color='b', label="Training Time")
+    ax2.plot(df['cv_time'], 'o-', color='y', label="CV Time")
+
+    ax1.legend(loc="best")
+    ax2.legend(loc="best")
+
+    plt.tight_layout()
+    return plt
+
+
 def model_test_score(estimator, X_test, y_test):
     return estimator.score(X_test, y_test)
