@@ -154,19 +154,20 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                      color="r")
     ax1.fill_between(train_sizes, test_scores_mean - test_scores_std,
                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    ax1.plot(train_sizes, train_scores_mean, 'o-', color="r",
-             label="Training score")
-    ax1.plot(train_sizes, test_scores_mean, 'o-', color="g",
-             label="Cross-validation score")
+    line1 = ax1.plot(train_sizes, train_scores_mean, 'o-', color="r",
+                     label="Training score")
+    line2 = ax1.plot(train_sizes, test_scores_mean, 'o-', color="g",
+                     label="Cross-validation score")
 
     # plot times on the right axis
     ax2 = ax1.twinx()
     ax2.set_ylabel("Time(s)")
-    ax2.plot(train_times_df['train_time'], 'o-', color='b', label="Training Time")
-    ax2.plot(train_times_df['cv_time'], 'o-', color='y', label="CV Time")
+    line3 = ax2.plot(train_times_df['train_time'], 'o-', color='b', label="Training Time")
+    line4 = ax2.plot(train_times_df['cv_time'], 'o-', color='y', label="CV Time")
 
-    ax1.legend(loc="best")
-    ax2.legend(loc="best")
+    lines = line1 + line2 + line3 + line4
+    labels = [l.get_label() for l in lines]
+    ax1.legend(lines, labels, loc="best")
 
     plt.tight_layout()
     return plt
@@ -235,19 +236,20 @@ def plot_iterative_lc(df, title, max_iter_range, ylim=None):
     #                  train_scores + train_scores_std, alpha=0.1, color="r")
     # ax1.fill_between(max_iter_range, cv_scores - cv_scores_std,
     #                  cv_scores + cv_scores_std, alpha=0.1, color="g")
-    ax1.plot(max_iter_range, train_scores, 'o-', color="r",
+    line1 = ax1.plot(max_iter_range, train_scores, 'o-', color="r",
              label="Training score")
-    ax1.plot(max_iter_range, cv_scores, 'o-', color="g",
+    line2 = ax1.plot(max_iter_range, cv_scores, 'o-', color="g",
              label="CV score")
 
     # plot times on the right axis
     ax2 = ax1.twinx()
     ax2.set_ylabel("Time(s)")
-    ax2.plot(df['train_time'], 'o-', color='b', label="Training Time")
-    ax2.plot(df['cv_time'], 'o-', color='y', label="CV Time")
+    line3 = ax2.plot(df['train_time'], 'o-', color='b', label="Training Time")
+    line4 = ax2.plot(df['cv_time'], 'o-', color='y', label="CV Time")
 
-    ax1.legend(loc="best")
-    ax2.legend(loc="best")
+    lines = line1 + line2 + line3 + line4
+    labels = [l.get_label() for l in lines]
+    ax1.legend(lines, labels, loc="best")
 
     plt.tight_layout()
     return plt
