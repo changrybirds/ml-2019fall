@@ -10,7 +10,7 @@ import sys
 import dataset_processing as data_proc
 
 
-def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
+def model_complexity_curve(X_train, y_train, max_iter, hp, hp_vals, cv=None):
     # note: this assumes we use 1 hidden layer
     hidden_units = []
     for val in hp_vals:
@@ -24,6 +24,7 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
     for hp_val, hu_num in zip(hp_vals, hidden_units):
         kwargs = {
             hp: hp_val,
+            'max_iter': max_iter,
             'random_state': data_proc.SEED_VAL}
 
         mlpclf = MLPClassifier(**kwargs)
@@ -68,18 +69,18 @@ def nn_iterative_lc(X, y, max_iter_range, cv=None):
         df.loc[i, 'train_time'] = train_time
         df.loc[i, 'cv_time'] = cv_time
 
-    return df
+    return df.astype('float64')
 
 
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate and print learning curves, use max_iter as x-axis
-    max_iter_range = np.arange(50, 400, 50)
+    max_iter_range = np.arange(100, 500, 50)
 
     lc_df = nn_iterative_lc(X_train, y_train, max_iter_range, cv=data_proc.CV_VAL)
-    max_iter_hp = lc_df['cv'].idxmax()
-
     if verbose:
         print(lc_df.head(10))
+
+    max_iter_hp = lc_df['cv'].idxmax()
     if verbose:
         print(lc_df.idxmax())
 
@@ -106,7 +107,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     if verbose:
         print(hp_vals)
     hidden_layer_sizes_mc = model_complexity_curve(
-        X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
+        X_train, y_train, max_iter_hp, hp, hp_vals, cv=data_proc.CV_VAL)
     hidden_layer_sizes_hp = hidden_layer_sizes_mc['cv'].idxmax()
 
     if verbose:
@@ -129,7 +130,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     hp = 'learning_rate_init'
     hp_vals = np.logspace(-5, 0, base=10.0, num=6)  # this should vary for each hyperparameter
     learning_rate_init_mc = model_complexity_curve(
-        X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
+        X_train, y_train, max_iter_hp, hp, hp_vals, cv=data_proc.CV_VAL)
     learning_rate_init_hp = learning_rate_init_mc['cv'].idxmax()
 
     if verbose:
