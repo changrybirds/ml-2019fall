@@ -12,6 +12,7 @@ import dataset_processing as data_proc
 from sklearn.utils.testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
 
+
 @ignore_warnings(category=ConvergenceWarning)
 def model_complexity_curve(X_train, y_train, max_iter, hp, hp_vals, cv=None):
     # note: this assumes we use 1 hidden layer
