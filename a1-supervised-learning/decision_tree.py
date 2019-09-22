@@ -40,6 +40,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     max_depth_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_depth_hp = max_depth_mc['cv'].idxmax()
+
     if verbose:
         print(max_depth_mc.head(10))
     if verbose:
@@ -62,6 +63,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     max_features_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
     max_features_hp = max_features_mc['cv'].idxmax()
+
     if verbose:
         print(max_features_mc.head(10))
     if verbose:
