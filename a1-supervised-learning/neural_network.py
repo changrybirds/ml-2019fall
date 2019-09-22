@@ -80,7 +80,7 @@ def nn_iterative_lc(X, y, max_iter_range, cv=None):
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate and print learning curves, use max_iter as x-axis
     if dataset_name == 'online_shopping':
-        max_iter_range = np.arange(20, 110, 10)
+        max_iter_range = np.arange(5, 55, 5)
     else:
         max_iter_range = np.arange(100, 500, 50)
 
