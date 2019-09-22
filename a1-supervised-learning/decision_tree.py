@@ -44,7 +44,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     data_proc.plot_model_complexity_charts(max_depth_mc['train'], max_depth_mc['cv'], dataset_name + ': MCC for ' + hp, hp)
     if show_plots: plt.show()
 
-    plt.savefig('dt_mcc_' + hp + '_' + dataset_name + '.png')
+    plt.savefig('graphs/dt_mcc_' + hp + '_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
@@ -59,7 +59,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     data_proc.plot_model_complexity_charts(max_features_mc['train'], max_features_mc['cv'], dataset_name + ': MCC for ' + hp, hp)
     if show_plots: plt.show()
 
-    plt.savefig('dt_mcc_' + hp + '_' + dataset_name + '.png')
+    plt.savefig('graphs/dt_mcc_' + hp + '_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
@@ -71,7 +71,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     data_proc.plot_learning_curve(dtclf, dataset_name + ': learning curves', X_train, y_train, cv=data_proc.CV_VAL, train_sizes=train_sizes)
     if show_plots: plt.show()
 
-    plt.savefig('dt_lc_' + dataset_name + '.png')
+    plt.savefig('graphs/dt_lc_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
