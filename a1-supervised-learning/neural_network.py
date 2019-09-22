@@ -79,7 +79,10 @@ def nn_iterative_lc(X, y, max_iter_range, cv=None):
 @ignore_warnings(category=ConvergenceWarning)
 def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate and print learning curves, use max_iter as x-axis
-    max_iter_range = np.arange(100, 500, 50)
+    if dataset_name == 'online_shopping':
+        max_iter_range = np.arange(20, 110, 10)
+    else:
+        max_iter_range = np.arange(100, 500, 50)
 
     lc_df = nn_iterative_lc(X_train, y_train, max_iter_range, cv=data_proc.CV_VAL)
     if verbose:
