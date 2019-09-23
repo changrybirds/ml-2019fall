@@ -68,9 +68,9 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     # calculate and print learning curves, use max_iter as x-axis
     if dataset_name == 'online_shopping':
         # max_iter_range = np.arange(100, 500, 50)
-        max_iter_range = np.arange(5, 55, 5)
+        max_iter_range = np.arange(1000, 10000, 1000)
     else:
-        max_iter_range = np.arange(10, 110, 10)
+        max_iter_range = np.arange(1000, 10000, 1000)
 
     lc_df = svm_iterative_lc(kernel, X_train, y_train, max_iter_range, cv=data_proc.CV_VAL)
     if verbose:
@@ -126,7 +126,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     # calculate and print learning curves
     train_sizes = np.linspace(0.1, 0.9, 9)
     data_proc.plot_learning_curve(
-        adaclf, dataset_name + ': learning curves',
+        svmclf, dataset_name + ': learning curves',
         X_train, y_train, cv=data_proc.CV_VAL, train_sizes=train_sizes)
     if show_plots:
         plt.show()
@@ -135,10 +135,10 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     plt.clf()
     plt.close()
 
-    adaclf.fit(X_train, y_train)
+    svmclf.fit(X_train, y_train)
 
-    train_score = data_proc.model_train_score(adaclf, X_train, y_train)
-    test_score = data_proc.model_test_score(adaclf, X_test, y_test)
+    train_score = data_proc.model_train_score(svmclf, X_train, y_train)
+    test_score = data_proc.model_test_score(svmclf, X_test, y_test)
     print("AdaBoostClassifier training set score for " + dataset_name + ": ", train_score)
     print("AdaBoostClassifier holdout set score for " + dataset_name + ": ", test_score)
 
@@ -151,6 +151,10 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 def abalone(kernels, verbose=False, show_plots=False):
     X_train, X_test, y_train, y_test = data_proc.process_abalone()
 
+    for col in X_train.columns:
+        X_train[col] = data_proc.scale_data(X_train[col])
+        X_test[col] = data_proc.scale_data(X_test[col])
+
     for kernel in kernels:
         run_experiment(
             kernel, 'abalone', X_train, X_test, y_train, y_test,
@@ -159,6 +163,15 @@ def abalone(kernels, verbose=False, show_plots=False):
 
 def online_shopping(kernels, verbose=False, show_plots=False):
     X_train, X_test, y_train, y_test = data_proc.process_online_shopping()
+    scalable_cols = [
+        'Administrative', 'Administrative_Duration', 'Informational', 'Informational_Duration',
+        'ProductRelated', 'ProductRelated_Duration', 'BounceRates', 'ExitRates', 'PageValues', 'SpecialDay']
+
+    for col in scalable_cols:
+        X_train[col] = data_proc.scale_data(X_train[col])
+        X_test[col] = data_proc.scale_data(X_test[col])
+
+    print(X_train.head())
 
     for kernel in kernels:
         run_experiment(
