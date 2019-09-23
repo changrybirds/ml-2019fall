@@ -95,7 +95,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     if show_plots:
         plt.show()
 
-    plt.savefig('graphs/svm' + kernel + '_lc_' + dataset_name + '.png')
+    plt.savefig('graphs/svm_' + kernel + '_iterlc_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
@@ -125,7 +125,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     if show_plots:
         plt.show()
 
-    plt.savefig('graphs/svm' + kernel + '_mcc_' + hp + '_' + dataset_name + '.png')
+    plt.savefig('graphs/svm_' + kernel + '_mcc_' + hp + '_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
@@ -144,7 +144,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     if show_plots:
         plt.show()
 
-    plt.savefig('graphs/svm' + kernel + '_lc_' + dataset_name + '.png')
+    plt.savefig('graphs/svm_' + kernel + '_lc_' + dataset_name + '.png')
     plt.clf()
     plt.close()
 
