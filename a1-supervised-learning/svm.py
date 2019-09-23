@@ -8,12 +8,18 @@ from time import time
 
 import dataset_processing as data_proc
 
+from sklearn.utils.testing import ignore_warnings
+from sklearn.exceptions import ConvergenceWarning
+
+
+@ignore_warnings(category=ConvergenceWarning)
 def model_complexity_curve(kernel, X_train, y_train, max_iter, hp, hp_vals, cv=None):
     df = pd.DataFrame(index=hp_vals, columns=['train', 'cv'])
 
     for hp_val in hp_vals:
         kwargs = {
             'kernel': kernel,
+            'gamma': ''auto''
             hp: hp_val,
             'max_iter': max_iter,
             'random_state': data_proc.SEED_VAL}
@@ -34,11 +40,13 @@ def model_complexity_curve(kernel, X_train, y_train, max_iter, hp, hp_vals, cv=N
     return pd.DataFrame(df, dtype='float')
 
 
+@ignore_warnings(category=ConvergenceWarning)
 def svm_iterative_lc(kernel, X, y, max_iter_range, cv=None):
     df = pd.DataFrame(index=max_iter_range, columns=['train', 'cv', 'train_time', 'cv_time'])
     for i in max_iter_range:
         kwargs = {
             'kernel': kernel,
+            'gamma': ''auto''
             'max_iter': i,
             'random_state': data_proc.SEED_VAL}
 
@@ -64,13 +72,14 @@ def svm_iterative_lc(kernel, X, y, max_iter_range, cv=None):
     return df.astype('float64')
 
 
+@ignore_warnings(category=ConvergenceWarning)
 def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbose=False, show_plots=False):
     # calculate and print learning curves, use max_iter as x-axis
     if dataset_name == 'online_shopping':
         # max_iter_range = np.arange(100, 500, 50)
-        max_iter_range = np.arange(1000, 10000, 1000)
+        max_iter_range = np.arange(1000, 2000, 100)
     else:
-        max_iter_range = np.arange(1000, 10000, 1000)
+        max_iter_range = np.arange(1000, 2000, 100)
 
     lc_df = svm_iterative_lc(kernel, X_train, y_train, max_iter_range, cv=data_proc.CV_VAL)
     if verbose:
@@ -92,7 +101,11 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 
     # calculate model complexity scores for C
     hp = 'C'
-    hp_vals = np.logspace(-5, 0, base=10.0, num=6)  # this should vary for each hyperparameter
+    if kernel == 'linear':
+        # hp_vals = np.logspace(-13, -8, base=2.0, num=6)
+        hp_vals = np.logspace(-3, 3, base=2.0, num=7)
+    else:
+        hp_vals = np.logspace(-5, 1, base=2.0, num=7)  # this should vary for each hyperparameter
 
     if verbose:
         print(hp_vals)
@@ -119,7 +132,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 
     # instantiate SVC
     svmclf = SVC(
-        kernel=kernel, C=C_hp, max_iter=max_iter_hp, random_state=data_proc.SEED_VAL)
+        kernel=kernel, C=C_hp, gamma='auto', max_iter=max_iter_hp, random_state=data_proc.SEED_VAL)
 
     svmclf.fit(X_train, y_train)
 
@@ -139,11 +152,6 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 
     train_score = data_proc.model_train_score(svmclf, X_train, y_train)
     test_score = data_proc.model_test_score(svmclf, X_test, y_test)
-    print("AdaBoostClassifier training set score for " + dataset_name + ": ", train_score)
-    print("AdaBoostClassifier holdout set score for " + dataset_name + ": ", test_score)
-
-    train_score = data_proc.model_train_score(svmclf, X_train, y_train)
-    test_score = data_proc.model_test_score(svmclf, X_test, y_test)
     print("SVC " + kernel + " training set score for " + dataset_name + ": ", train_score)
     print("SVC " + kernel + " holdout set score for " + dataset_name + ": ", test_score)
 
@@ -154,6 +162,7 @@ def abalone(kernels, verbose=False, show_plots=False):
     for col in X_train.columns:
         X_train[col] = data_proc.scale_data(X_train[col])
         X_test[col] = data_proc.scale_data(X_test[col])
+    print(X_train.info())
 
     for kernel in kernels:
         run_experiment(
