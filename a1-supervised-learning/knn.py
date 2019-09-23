@@ -33,9 +33,9 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     # calculate model complexity scores for n_neighbors
     hp = 'n_neighbors'
     if dataset_name == 'online_shopping':
-        hp_vals = np.arange(5, 50, 5)
+        hp_vals = np.arange(2, 30, 2)
     else:
-        hp_vals = np.arange(5, 50, 5)
+        hp_vals = np.arange(2, 30, 2)
     if verbose:
         print(hp_vals)
 
@@ -59,7 +59,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
 
     # calculate model complexity scores for leaf_size
     hp = 'leaf_size'
-    hp_vals = np.arange(15, 50, 5)  # this should vary for each hyperparameter
+    hp_vals = np.arange(5, 100, 5)  # this should vary for each hyperparameter
 
     leaf_size_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
