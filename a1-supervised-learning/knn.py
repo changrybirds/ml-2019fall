@@ -11,9 +11,7 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
     df = pd.DataFrame(index=hp_vals, columns=['train', 'cv'])
 
     for hp_val in hp_vals:
-        kwargs = {
-            hp: hp_val,
-            'random_state': data_proc.SEED_VAL}
+        kwargs = {hp: hp_val, algorithm='kd_tree'}
 
         knnclf = KNeighborsClassifier(**kwargs)
 
@@ -35,9 +33,9 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     # calculate model complexity scores for n_neighbors
     hp = 'n_neighbors'
     if dataset_name == 'online_shopping':
-        hp_vals = np.arange(5, 30, 5)
+        hp_vals = np.arange(5, 50, 5)
     else:
-        hp_vals = np.arange(10, 60, 10)
+        hp_vals = np.arange(5, 50, 5)
     if verbose:
         print(hp_vals)
 
@@ -59,21 +57,21 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
     plt.clf()
     plt.close()
 
-    # calculate model complexity scores for learning_rate
-    hp = 'learning_rate'
-    hp_vals = np.logspace(-3, 1, base=10.0, num=5)  # this should vary for each hyperparameter
+    # calculate model complexity scores for leaf_size
+    hp = 'leaf_size'
+    hp_vals = np.arange(15, 50, 5)  # this should vary for each hyperparameter
 
-    learning_rate_mc = model_complexity_curve(
+    leaf_size_mc = model_complexity_curve(
         X_train, y_train, hp, hp_vals, cv=data_proc.CV_VAL)
-    learning_rate_hp = learning_rate_mc['cv'].idxmax()
+    leaf_size_hp = leaf_size_mc['cv'].idxmax()
     if verbose:
-        print(learning_rate_mc.head(10))
+        print(leaf_size_mc.head(10))
     if verbose:
-        print(learning_rate_mc.idxmax())
+        print(leaf_size_mc.idxmax())
 
     data_proc.plot_model_complexity_charts(
-        learning_rate_mc['train'], learning_rate_mc['cv'],
-        dataset_name + ': MCC for ' + hp, hp, xscale_type='log')
+        leaf_size_mc['train'], leaf_size_mc['cv'],
+        dataset_name + ': MCC for ' + hp, hp)
     if show_plots:
         plt.show()
 
@@ -83,8 +81,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
 
     # instantiate adaboost classifier
     knnclf = KNeighborsClassifier(
-        n_neighbors=n_neighbors_hp, learning_rate=learning_rate_hp,
-        random_state=data_proc.SEED_VAL)
+        n_neighbors=n_neighbors_hp, leaf_size=leaf_size_hp, algorithm='kd_tree')
 
     # calculate and print learning curves
     train_sizes = np.linspace(0.1, 0.9, 9)
