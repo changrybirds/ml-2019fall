@@ -69,7 +69,6 @@ def process_online_shopping():
         'Region': 'str',
         'TrafficType': 'str'
     })
-    print(df.info())
 
     X = pd.concat((df.iloc[:, :-6], df.iloc[:, -5:]), axis=1)
     y = df.iloc[:, -6]
@@ -238,9 +237,6 @@ def plot_iterative_lc(df, title, max_iter_range, ylim=None):
         ax1.set_ylim(*ylim)
     ax1.set_xlabel("max_iterations")
     ax1.set_ylabel("Score")
-
-    # debugging point
-    print(df.head(20))
 
     train_scores = df['train']
     train_scores_std = np.std(df['train'])

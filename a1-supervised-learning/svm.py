@@ -162,7 +162,6 @@ def abalone(kernels, verbose=False, show_plots=False):
     for col in X_train.columns:
         X_train[col] = data_proc.scale_data(X_train[col])
         X_test[col] = data_proc.scale_data(X_test[col])
-    print(X_train.info())
 
     for kernel in kernels:
         run_experiment(
@@ -179,8 +178,6 @@ def online_shopping(kernels, verbose=False, show_plots=False):
     for col in scalable_cols:
         X_train[col] = data_proc.scale_data(X_train[col])
         X_test[col] = data_proc.scale_data(X_test[col])
-
-    print(X_train.head())
 
     for kernel in kernels:
         run_experiment(
