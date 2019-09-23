@@ -19,7 +19,7 @@ def model_complexity_curve(kernel, X_train, y_train, max_iter, hp, hp_vals, cv=N
     for hp_val in hp_vals:
         kwargs = {
             'kernel': kernel,
-            'gamma': ''auto''
+            'gamma': 'auto'
             hp: hp_val,
             'max_iter': max_iter,
             'random_state': data_proc.SEED_VAL}
@@ -46,7 +46,7 @@ def svm_iterative_lc(kernel, X, y, max_iter_range, cv=None):
     for i in max_iter_range:
         kwargs = {
             'kernel': kernel,
-            'gamma': ''auto''
+            'gamma': 'auto'
             'max_iter': i,
             'random_state': data_proc.SEED_VAL}
 
