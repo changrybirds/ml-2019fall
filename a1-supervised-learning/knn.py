@@ -11,7 +11,7 @@ def model_complexity_curve(X_train, y_train, hp, hp_vals, cv=None):
     df = pd.DataFrame(index=hp_vals, columns=['train', 'cv'])
 
     for hp_val in hp_vals:
-        kwargs = {hp: hp_val, algorithm='kd_tree'}
+        kwargs = {hp: hp_val, 'algorithm': 'kd_tree'}
 
         knnclf = KNeighborsClassifier(**kwargs)
 
