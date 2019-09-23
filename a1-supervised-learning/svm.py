@@ -90,7 +90,8 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
         print(lc_df.idxmax())
 
     data_proc.plot_iterative_lc(
-        lc_df, dataset_name + ': learning curves (iterations)', max_iter_range=max_iter_range)
+        lc_df, dataset_name + ' - ' + kernel + ': learning curves (iterations)',
+        max_iter_range=max_iter_range)
 
     if show_plots:
         plt.show()
@@ -120,7 +121,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 
     data_proc.plot_model_complexity_charts(
         C_mc['train'], C_mc['cv'],
-        dataset_name + ': MCC for ' + hp, hp, xscale_type='log')
+        dataset_name + ': MCC for ' + hp, hp, xscale_type='log', basex=2)
 
     if show_plots:
         plt.show()
@@ -139,7 +140,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
     # calculate and print learning curves
     train_sizes = np.linspace(0.1, 0.9, 9)
     data_proc.plot_learning_curve(
-        svmclf, dataset_name + ': learning curves',
+        svmclf, dataset_name + ' - ' + kernel + ': learning curves',
         X_train, y_train, cv=data_proc.CV_VAL, train_sizes=train_sizes)
     if show_plots:
         plt.show()
