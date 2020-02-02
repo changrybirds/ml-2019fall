@@ -149,7 +149,7 @@ def run_experiment(dataset_name, X_train, X_test, y_train, y_test, verbose=False
 
     data_proc.plot_model_complexity_charts(
         learning_rate_init_mc['train'], learning_rate_init_mc['cv'],
-        dataset_name + ': MCC for ' + hp, hp, xscale_type='log')
+        dataset_name + ': MCC for ' + hp, hp, xscale_type='log', basex=10)
 
     if show_plots:
         plt.show()

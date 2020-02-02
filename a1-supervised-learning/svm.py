@@ -121,7 +121,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
 
     data_proc.plot_model_complexity_charts(
         C_mc['train'], C_mc['cv'],
-        dataset_name + ': MCC for ' + hp, hp, xscale_type='log', basex=2)
+        dataset_name + ' - ' + kernel + ': MCC for ' + hp, hp, xscale_type='log', basex=2)
 
     if show_plots:
         plt.show()
