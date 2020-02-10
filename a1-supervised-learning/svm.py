@@ -106,7 +106,7 @@ def run_experiment(kernel, dataset_name, X_train, X_test, y_train, y_test, verbo
         # hp_vals = np.logspace(-13, -8, base=2.0, num=6)
         hp_vals = np.logspace(-3, 3, base=2.0, num=7)
     else:
-        hp_vals = np.logspace(-5, 1, base=2.0, num=7)  # this should vary for each hyperparameter
+        hp_vals = np.logspace(-5, 3, base=2.0, num=9)  # this should vary for each hyperparameter
 
     if verbose:
         print(hp_vals)
